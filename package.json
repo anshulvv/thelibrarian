@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "elm-format": "^0.8.7"
+  },
+  "devDependencies": {
+    "elm": "^0.19.1-6",
+    "elm-live": "^4.0.2"
+  }
+}
