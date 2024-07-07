@@ -3,24 +3,35 @@ module Main exposing (..)
 import BookSearch exposing (BookSearchResultList)
 import Browser
 import Element exposing (Element)
+import Element.Input
 import Html exposing (Html)
 import Http
 import HttpClient
+import Maybe
 import Msg exposing (Msg)
 
 
+type BookSearchStatus
+    = Loading
+    | Loaded BookSearchResultList
+    | Error Http.Error
+    | NoOp
+
+
 type alias Model =
-    { bookSearchResultList : Maybe BookSearchResultList
+    { bookSearchStatus : BookSearchStatus
     , error : Maybe String
+    , searchInput : Maybe String
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { bookSearchResultList = Nothing
+    ( { bookSearchStatus = NoOp
       , error = Nothing
+      , searchInput = Nothing
       }
-    , HttpClient.getSearchBookResults
+    , Cmd.none
     )
 
 
@@ -30,10 +41,31 @@ update msg model =
         Msg.RecievedSearchResults result ->
             case result of
                 Ok searchResults ->
-                    ( { model | bookSearchResultList = Just searchResults }, Cmd.none )
+                    ( { model | bookSearchStatus = Loaded searchResults }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    ( { model | error = handleError error }, Cmd.none )
+                    ( { model | error = handleError error }
+                    , Cmd.none
+                    )
+
+        Msg.SearchInputChanged newSearchInput ->
+            if String.isEmpty newSearchInput then
+                ( { model
+                    | searchInput = Nothing
+                    , bookSearchStatus = NoOp
+                  }
+                , Cmd.none
+                )
+
+            else
+                ( { model
+                    | searchInput = Just newSearchInput
+                    , bookSearchStatus = Loading
+                  }
+                , HttpClient.getSearchBookResults newSearchInput
+                )
 
 
 handleError : Http.Error -> Maybe String
@@ -49,30 +81,44 @@ view model =
 viewHelper : Model -> Element Msg
 viewHelper model =
     Element.column []
-        [ showBookSearchResults model, Element.paragraph [] [ Element.text <| Maybe.withDefault "No Error" model.error ] ]
+        [ viewSearchBox model
+        , viewBookSearchResults model
+        , Element.paragraph [] [ Element.text <| Maybe.withDefault "No Error" model.error ]
+        ]
 
 
-showBookSearchResults : Model -> Element Msg
-showBookSearchResults model =
-    -- Element.text <| Debug.toString model.bookSearchResultList
+viewSearchBox : Model -> Element Msg
+viewSearchBox model =
+    Element.Input.search
+        []
+        { onChange = Msg.SearchInputChanged
+        , text = model.searchInput |> Maybe.withDefault ""
+        , placeholder = Just (Element.Input.placeholder [] (Element.text "Search Here"))
+        , label = Element.Input.labelHidden "something"
+        }
+
+
+viewBookSearchResults : Model -> Element Msg
+viewBookSearchResults model =
     let
         bookSearchResultList : BookSearchResultList
         bookSearchResultList =
-            case model.bookSearchResultList of
-                Just searchResults ->
+            case model.bookSearchStatus of
+                Loaded searchResults ->
                     searchResults
 
-                Nothing ->
+                _ ->
                     []
-
-        -- showSingleBookInfo : BookSearchResult -> Element Msg
-        -- showSingleBookInfo bookSearchInfo =
-        --     Element.column []
-        --         [ Element.text <| bookSearchInfo.title
-        --         ]
     in
-    Element.column []
-        (List.map (\bookSearchResult -> Element.text bookSearchResult.title) bookSearchResultList)
+    if List.isEmpty bookSearchResultList then
+        Element.text <| "List is empty"
+
+    else
+        Element.column []
+            (List.map
+                (\bookSearchResult -> Element.text bookSearchResult.title)
+                bookSearchResultList
+            )
 
 
 main : Program () Model Msg
