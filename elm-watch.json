@@ -1,0 +1,10 @@
+{
+    "targets": {
+        "Target: all": {
+            "inputs": [
+                "src/Main.elm"
+            ],
+            "output": "index.js"
+        }
+    }
+}

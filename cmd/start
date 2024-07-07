@@ -1,0 +1,12 @@
+#!/bin/bash
+
+ELM_WATCH=./node_modules/elm-watch/index.js
+COMMAND1="${ELM_WATCH} hot 'all' | cat"
+
+
+HTTP_SERVER=./node_modules/http-server/bin/http-server
+COMMAND2="${HTTP_SERVER} --cors --port=8000 --silent"
+
+COMMAND="${COMMAND1} & ${COMMAND2}"
+
+eval "${COMMAND}"
