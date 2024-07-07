@@ -1,4 +1,6 @@
 # Todos
 
 - Need to add `id` and `selfLink` field to book search result
-- Make an input adding on the fly search functionality
+- UI changes
+  - Make search input width smaller
+  - Add dummy book cover image till the image loads
