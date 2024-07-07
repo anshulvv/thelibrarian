@@ -14,7 +14,6 @@ import Msg exposing (Msg)
 type BookSearchStatus
     = Loading
     | Loaded BookSearchResultList
-    | Error Http.Error
     | NoOp
 
 
