@@ -34,21 +34,20 @@ update msg model =
                     )
 
         Msg.SearchInputChanged newSearchInput ->
-            if String.isEmpty newSearchInput then
-                ( { model
-                    | searchInput = Nothing
-                    , bookSearchStatus = NoOp
-                  }
-                , Cmd.none
-                )
+            let
+                bookSearchStatus =
+                    if String.isEmpty (String.trim newSearchInput) then
+                        NoOp
 
-            else
-                ( { model
-                    | searchInput = Just newSearchInput
-                    , bookSearchStatus = Loading
-                  }
-                , HttpClient.getSearchBookResults newSearchInput
-                )
+                    else
+                        Loading
+            in
+            ( { model
+                | searchInput = Just newSearchInput
+                , bookSearchStatus = bookSearchStatus
+              }
+            , HttpClient.getSearchBookResults newSearchInput
+            )
 
 
 handleError : Http.Error -> Maybe String

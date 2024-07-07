@@ -9,7 +9,7 @@ type alias BookSearchResult =
     , authors : List String
     , pageCount : Int
     , categories : List String
-    , rating : Float
+    , rating : Maybe Float
     , isAdultBook : String
     , publishedDate : String
     , description : String
@@ -43,7 +43,7 @@ bookSearchResultDecoder =
         |> optional "authors" (D.list D.string) []
         |> optional "pageCount" D.int 0
         |> optional "categories" (D.list D.string) []
-        |> optional "averageRating" D.float 0
+        |> optional "averageRating" (D.maybe D.float) Nothing
         |> optional "maturityRating" D.string ""
         |> optional "publishedDate" D.string ""
         |> optional "description" D.string ""

@@ -604,7 +604,7 @@ ${variant}`;
   var VERSION = "1.1.3";
   var TARGET_NAME = "Target: all";
   var INITIAL_ELM_COMPILED_TIMESTAMP = Number(
-    "1720327201130"
+    "1720356673912"
   );
   var ORIGINAL_COMPILATION_MODE = "standard";
   var ORIGINAL_BROWSER_UI_POSITION = "BottomLeft";
@@ -9310,6 +9310,15 @@ var $author$project$BookSearch$BookSearchResult = function (title) {
 var $elm$json$Json$Decode$float = _Json_decodeFloat;
 var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $elm$json$Json$Decode$list = _Json_decodeList;
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $elm$json$Json$Decode$maybe = function (decoder) {
+	return $elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, decoder),
+				$elm$json$Json$Decode$succeed($elm$core$Maybe$Nothing)
+			]));
+};
 var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom = $elm$json$Json$Decode$map2($elm$core$Basics$apR);
 var $elm$json$Json$Decode$andThen = _Json_andThen;
 var $elm$json$Json$Decode$field = _Json_decodeField;
@@ -9319,7 +9328,6 @@ var $elm$json$Json$Decode$at = F2(
 	});
 var $elm$json$Json$Decode$decodeValue = _Json_run;
 var $elm$json$Json$Decode$null = _Json_decodeNull;
-var $elm$json$Json$Decode$oneOf = _Json_oneOf;
 var $elm$json$Json$Decode$value = _Json_decodeValue;
 var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optionalDecoder = F3(
 	function (path, valDecoder, fallback) {
@@ -9406,8 +9414,8 @@ var $author$project$BookSearch$bookSearchResultDecoder = A4(
 					A4(
 						$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optional,
 						'averageRating',
-						$elm$json$Json$Decode$float,
-						0,
+						$elm$json$Json$Decode$maybe($elm$json$Json$Decode$float),
+						$elm$core$Maybe$Nothing,
 						A4(
 							$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optional,
 							'categories',
@@ -9447,11 +9455,13 @@ var $author$project$BookSearch$searchResultDecoder = A3(
 	'items',
 	$author$project$BookSearch$bookSearchResultListDecoder,
 	$elm$json$Json$Decode$succeed($elm$core$Basics$identity));
+var $elm$core$String$trim = _String_trim;
 var $author$project$HttpClient$getSearchBookResults = function (searchQuery) {
-	return $elm$http$Http$get(
+	var modifiedQuery = $elm$core$String$trim(searchQuery);
+	return $elm$core$String$isEmpty(modifiedQuery) ? $elm$core$Platform$Cmd$none : $elm$http$Http$get(
 		{
 			expect: A2($elm$http$Http$expectJson, $author$project$Msg$RecievedSearchResults, $author$project$BookSearch$searchResultDecoder),
-			url: 'https://www.googleapis.com/books/v1/volumes?q=' + searchQuery
+			url: 'https://www.googleapis.com/books/v1/volumes?q=' + modifiedQuery
 		});
 };
 var $elm$core$Debug$toString = _Debug_toString;
@@ -9484,15 +9494,13 @@ var $author$project$Main$update = F2(
 			}
 		} else {
 			var newSearchInput = msg.a;
-			return $elm$core$String$isEmpty(newSearchInput) ? _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{bookSearchStatus: $author$project$Model$NoOp, searchInput: $elm$core$Maybe$Nothing}),
-				$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
+			var bookSearchStatus = $elm$core$String$isEmpty(
+				$elm$core$String$trim(newSearchInput)) ? $author$project$Model$NoOp : $author$project$Model$Loading;
+			return _Utils_Tuple2(
 				_Utils_update(
 					model,
 					{
-						bookSearchStatus: $author$project$Model$Loading,
+						bookSearchStatus: bookSearchStatus,
 						searchInput: $elm$core$Maybe$Just(newSearchInput)
 					}),
 				$author$project$HttpClient$getSearchBookResults(newSearchInput));
@@ -15321,22 +15329,16 @@ var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
 var $mdgriffith$elm_ui$Element$text = function (content) {
 	return $mdgriffith$elm_ui$Internal$Model$Text(content);
 };
+var $mdgriffith$elm_ui$Internal$Model$AlignX = function (a) {
+	return {$: 'AlignX', a: a};
+};
+var $mdgriffith$elm_ui$Internal$Model$CenterX = {$: 'CenterX'};
+var $mdgriffith$elm_ui$Element$centerX = $mdgriffith$elm_ui$Internal$Model$AlignX($mdgriffith$elm_ui$Internal$Model$CenterX);
 var $mdgriffith$elm_ui$Internal$Model$AlignY = function (a) {
 	return {$: 'AlignY', a: a};
 };
 var $mdgriffith$elm_ui$Internal$Model$CenterY = {$: 'CenterY'};
 var $mdgriffith$elm_ui$Element$centerY = $mdgriffith$elm_ui$Internal$Model$AlignY($mdgriffith$elm_ui$Internal$Model$CenterY);
-var $mdgriffith$elm_ui$Internal$Flag$borderColor = $mdgriffith$elm_ui$Internal$Flag$flag(28);
-var $mdgriffith$elm_ui$Element$Border$color = function (clr) {
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$borderColor,
-		A3(
-			$mdgriffith$elm_ui$Internal$Model$Colored,
-			'bc-' + $mdgriffith$elm_ui$Internal$Model$formatColorClass(clr),
-			'border-color',
-			clr));
-};
 var $elm$html$Html$Attributes$alt = $elm$html$Html$Attributes$stringProperty('alt');
 var $elm$html$Html$Attributes$src = function (url) {
 	return A2(
@@ -15388,28 +15390,6 @@ var $mdgriffith$elm_ui$Element$image = F2(
 						$mdgriffith$elm_ui$Internal$Model$Unkeyed(_List_Nil))
 					])));
 	});
-var $mdgriffith$elm_ui$Internal$Model$PaddingStyle = F5(
-	function (a, b, c, d, e) {
-		return {$: 'PaddingStyle', a: a, b: b, c: c, d: d, e: e};
-	});
-var $mdgriffith$elm_ui$Internal$Flag$padding = $mdgriffith$elm_ui$Internal$Flag$flag(2);
-var $mdgriffith$elm_ui$Element$padding = function (x) {
-	var f = x;
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$padding,
-		A5(
-			$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
-			'p-' + $elm$core$String$fromInt(x),
-			f,
-			f,
-			f,
-			f));
-};
-var $mdgriffith$elm_ui$Element$rgb255 = F3(
-	function (red, green, blue) {
-		return A4($mdgriffith$elm_ui$Internal$Model$Rgba, red / 255, green / 255, blue / 255, 1);
-	});
 var $mdgriffith$elm_ui$Internal$Model$AsRow = {$: 'AsRow'};
 var $mdgriffith$elm_ui$Internal$Model$asRow = $mdgriffith$elm_ui$Internal$Model$AsRow;
 var $mdgriffith$elm_ui$Element$row = F2(
@@ -15430,12 +15410,92 @@ var $mdgriffith$elm_ui$Element$row = F2(
 						attrs))),
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
+var $author$project$View$viewLoader = A2(
+	$mdgriffith$elm_ui$Element$row,
+	_List_fromArray(
+		[
+			$mdgriffith$elm_ui$Element$centerX,
+			$mdgriffith$elm_ui$Element$centerY,
+			$mdgriffith$elm_ui$Element$height(
+			A2($mdgriffith$elm_ui$Element$minimum, 500, $mdgriffith$elm_ui$Element$fill))
+		]),
+	_List_fromArray(
+		[
+			A2(
+			$mdgriffith$elm_ui$Element$image,
+			_List_Nil,
+			{description: 'Loader', src: 'https://media.tenor.com/wpSo-8CrXqUAAAAi/loading-loading-forever.gif'})
+		]));
+var $mdgriffith$elm_ui$Internal$Flag$borderColor = $mdgriffith$elm_ui$Internal$Flag$flag(28);
+var $mdgriffith$elm_ui$Element$Border$color = function (clr) {
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$borderColor,
+		A3(
+			$mdgriffith$elm_ui$Internal$Model$Colored,
+			'bc-' + $mdgriffith$elm_ui$Internal$Model$formatColorClass(clr),
+			'border-color',
+			clr));
+};
+var $mdgriffith$elm_ui$Internal$Model$Max = F2(
+	function (a, b) {
+		return {$: 'Max', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Element$maximum = F2(
+	function (i, l) {
+		return A2($mdgriffith$elm_ui$Internal$Model$Max, i, l);
+	});
+var $mdgriffith$elm_ui$Internal$Model$PaddingStyle = F5(
+	function (a, b, c, d, e) {
+		return {$: 'PaddingStyle', a: a, b: b, c: c, d: d, e: e};
+	});
+var $mdgriffith$elm_ui$Internal$Flag$padding = $mdgriffith$elm_ui$Internal$Flag$flag(2);
+var $mdgriffith$elm_ui$Internal$Model$paddingName = F4(
+	function (top, right, bottom, left) {
+		return 'pad-' + ($elm$core$String$fromInt(top) + ('-' + ($elm$core$String$fromInt(right) + ('-' + ($elm$core$String$fromInt(bottom) + ('-' + $elm$core$String$fromInt(left)))))));
+	});
+var $mdgriffith$elm_ui$Element$paddingEach = function (_v0) {
+	var top = _v0.top;
+	var right = _v0.right;
+	var bottom = _v0.bottom;
+	var left = _v0.left;
+	if (_Utils_eq(top, right) && (_Utils_eq(top, bottom) && _Utils_eq(top, left))) {
+		var topFloat = top;
+		return A2(
+			$mdgriffith$elm_ui$Internal$Model$StyleClass,
+			$mdgriffith$elm_ui$Internal$Flag$padding,
+			A5(
+				$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
+				'p-' + $elm$core$String$fromInt(top),
+				topFloat,
+				topFloat,
+				topFloat,
+				topFloat));
+	} else {
+		return A2(
+			$mdgriffith$elm_ui$Internal$Model$StyleClass,
+			$mdgriffith$elm_ui$Internal$Flag$padding,
+			A5(
+				$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
+				A4($mdgriffith$elm_ui$Internal$Model$paddingName, top, right, bottom, left),
+				top,
+				right,
+				bottom,
+				left));
+	}
+};
+var $mdgriffith$elm_ui$Element$rgb255 = F3(
+	function (red, green, blue) {
+		return A4($mdgriffith$elm_ui$Internal$Model$Rgba, red / 255, green / 255, blue / 255, 1);
+	});
 var $mdgriffith$elm_ui$Internal$Model$Class = F2(
 	function (a, b) {
 		return {$: 'Class', a: a, b: b};
 	});
 var $mdgriffith$elm_ui$Internal$Flag$borderStyle = $mdgriffith$elm_ui$Internal$Flag$flag(11);
 var $mdgriffith$elm_ui$Element$Border$solid = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$borderStyle, $mdgriffith$elm_ui$Internal$Style$classes.borderSolid);
+var $mdgriffith$elm_ui$Internal$Flag$fontWeight = $mdgriffith$elm_ui$Internal$Flag$flag(13);
+var $mdgriffith$elm_ui$Element$Font$bold = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontWeight, $mdgriffith$elm_ui$Internal$Style$classes.bold);
 var $mdgriffith$elm_ui$Element$spacingXY = F2(
 	function (x, y) {
 		return A2(
@@ -15447,6 +15507,114 @@ var $mdgriffith$elm_ui$Element$spacingXY = F2(
 				x,
 				y));
 	});
+var $author$project$View$viewBookDetailsCard = function (bookInfo) {
+	var viewTitle = function (title) {
+		return A2(
+			$mdgriffith$elm_ui$Element$paragraph,
+			_List_fromArray(
+				[$mdgriffith$elm_ui$Element$Font$bold]),
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$text(title)
+				]));
+	};
+	var showAuthors = function (authors) {
+		if (!authors.b) {
+			return 'No Authors';
+		} else {
+			var head = authors.a;
+			var tail = authors.b;
+			return A3(
+				$elm$core$List$foldr,
+				F2(
+					function (author, authorString) {
+						return authorString + (', ' + author);
+					}),
+				head,
+				tail);
+		}
+	};
+	return A2(
+		$mdgriffith$elm_ui$Element$column,
+		_List_fromArray(
+			[
+				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+				A2($mdgriffith$elm_ui$Element$spacingXY, 0, 20)
+			]),
+		_List_fromArray(
+			[
+				viewTitle(bookInfo.title),
+				$mdgriffith$elm_ui$Element$text(
+				showAuthors(bookInfo.authors)),
+				$mdgriffith$elm_ui$Element$text(bookInfo.publishedDate)
+			]));
+};
+var $mdgriffith$elm_ui$Internal$Model$Empty = {$: 'Empty'};
+var $mdgriffith$elm_ui$Element$none = $mdgriffith$elm_ui$Internal$Model$Empty;
+var $mdgriffith$elm_ui$Element$paddingXY = F2(
+	function (x, y) {
+		if (_Utils_eq(x, y)) {
+			var f = x;
+			return A2(
+				$mdgriffith$elm_ui$Internal$Model$StyleClass,
+				$mdgriffith$elm_ui$Internal$Flag$padding,
+				A5(
+					$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
+					'p-' + $elm$core$String$fromInt(x),
+					f,
+					f,
+					f,
+					f));
+		} else {
+			var yFloat = y;
+			var xFloat = x;
+			return A2(
+				$mdgriffith$elm_ui$Internal$Model$StyleClass,
+				$mdgriffith$elm_ui$Internal$Flag$padding,
+				A5(
+					$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
+					'p-' + ($elm$core$String$fromInt(x) + ('-' + $elm$core$String$fromInt(y))),
+					yFloat,
+					xFloat,
+					yFloat,
+					xFloat));
+		}
+	});
+var $mdgriffith$elm_ui$Element$Font$size = function (i) {
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$fontSize,
+		$mdgriffith$elm_ui$Internal$Model$FontSize(i));
+};
+var $author$project$View$viewRating = function (maybeRating) {
+	if (maybeRating.$ === 'Nothing') {
+		return $mdgriffith$elm_ui$Element$none;
+	} else {
+		var rating = maybeRating.a;
+		return A2(
+			$mdgriffith$elm_ui$Element$row,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$centerY,
+					A2($mdgriffith$elm_ui$Element$paddingXY, 30, 0)
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$mdgriffith$elm_ui$Element$paragraph,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$Font$size(40)
+						]),
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$text(
+							$elm$core$String$fromFloat(rating))
+						])),
+					$mdgriffith$elm_ui$Element$text('/5')
+				]));
+	}
+};
 var $mdgriffith$elm_ui$Internal$Model$BorderWidth = F5(
 	function (a, b, c, d, e) {
 		return {$: 'BorderWidth', a: a, b: b, c: c, d: d, e: e};
@@ -15469,27 +15637,16 @@ var $author$project$View$viewSearchBookCard = function (bookInfo) {
 			$mdgriffith$elm_ui$Element$image,
 			_List_fromArray(
 				[
-					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-					$mdgriffith$elm_ui$Element$padding(20),
+					$mdgriffith$elm_ui$Element$height(
+					A2(
+						$mdgriffith$elm_ui$Element$maximum,
+						140,
+						A2($mdgriffith$elm_ui$Element$minimum, 100, $mdgriffith$elm_ui$Element$fill))),
+					$mdgriffith$elm_ui$Element$paddingEach(
+					{bottom: 15, left: 40, right: 30, top: 15}),
 					$mdgriffith$elm_ui$Element$centerY
 				]),
 			{description: 'thumbnail', src: url});
-	};
-	var showAuthors = function (authors) {
-		if (!authors.b) {
-			return 'No Authors';
-		} else {
-			var head = authors.a;
-			var tail = authors.b;
-			return A3(
-				$elm$core$List$foldr,
-				F2(
-					function (author, authorString) {
-						return authorString + (', ' + author);
-					}),
-				head,
-				tail);
-		}
 	};
 	return A2(
 		$mdgriffith$elm_ui$Element$row,
@@ -15500,49 +15657,36 @@ var $author$project$View$viewSearchBookCard = function (bookInfo) {
 				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 				$mdgriffith$elm_ui$Element$centerY,
 				$mdgriffith$elm_ui$Element$Border$color(
-				A3($mdgriffith$elm_ui$Element$rgb255, 255, 0, 0)),
+				A3($mdgriffith$elm_ui$Element$rgb255, 200, 200, 200)),
 				$mdgriffith$elm_ui$Element$Border$solid,
-				$mdgriffith$elm_ui$Element$Border$width(3)
+				$mdgriffith$elm_ui$Element$Border$width(1)
 			]),
 		_List_fromArray(
 			[
 				viewThumbnail(bookInfo.thumbnailImageUrl),
-				A2(
-				$mdgriffith$elm_ui$Element$column,
-				_List_fromArray(
-					[
-						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-						A2($mdgriffith$elm_ui$Element$spacingXY, 0, 20)
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$mdgriffith$elm_ui$Element$paragraph,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$mdgriffith$elm_ui$Element$text(bookInfo.title)
-							])),
-						$mdgriffith$elm_ui$Element$text(
-						showAuthors(bookInfo.authors)),
-						$mdgriffith$elm_ui$Element$text(bookInfo.publishedDate)
-					]))
+				$author$project$View$viewBookDetailsCard(bookInfo),
+				$author$project$View$viewRating(bookInfo.rating)
 			]));
 };
 var $author$project$View$viewBookSearchResults = function (model) {
 	var bookSearchResultList = function () {
-		var _v0 = model.bookSearchStatus;
-		if (_v0.$ === 'Loaded') {
-			var searchResults = _v0.a;
+		var _v1 = model.bookSearchStatus;
+		if (_v1.$ === 'Loaded') {
+			var searchResults = _v1.a;
 			return searchResults;
 		} else {
 			return _List_Nil;
 		}
 	}();
-	return $elm$core$List$isEmpty(bookSearchResultList) ? $mdgriffith$elm_ui$Element$text('List is empty') : A2(
-		$mdgriffith$elm_ui$Element$column,
-		_List_Nil,
-		A2($elm$core$List$map, $author$project$View$viewSearchBookCard, bookSearchResultList));
+	var _v0 = model.bookSearchStatus;
+	if (_v0.$ === 'Loading') {
+		return $author$project$View$viewLoader;
+	} else {
+		return $elm$core$List$isEmpty(bookSearchResultList) ? $mdgriffith$elm_ui$Element$text('List is empty') : A2(
+			$mdgriffith$elm_ui$Element$column,
+			_List_Nil,
+			A2($elm$core$List$map, $author$project$View$viewSearchBookCard, bookSearchResultList));
+	}
 };
 var $author$project$Msg$SearchInputChanged = function (a) {
 	return {$: 'SearchInputChanged', a: a};
@@ -15722,35 +15866,6 @@ var $mdgriffith$elm_ui$Element$rgb = F3(
 		return A4($mdgriffith$elm_ui$Internal$Model$Rgba, r, g, b, 1);
 	});
 var $mdgriffith$elm_ui$Element$Input$darkGrey = A3($mdgriffith$elm_ui$Element$rgb, 186 / 255, 189 / 255, 182 / 255);
-var $mdgriffith$elm_ui$Element$paddingXY = F2(
-	function (x, y) {
-		if (_Utils_eq(x, y)) {
-			var f = x;
-			return A2(
-				$mdgriffith$elm_ui$Internal$Model$StyleClass,
-				$mdgriffith$elm_ui$Internal$Flag$padding,
-				A5(
-					$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
-					'p-' + $elm$core$String$fromInt(x),
-					f,
-					f,
-					f,
-					f));
-		} else {
-			var yFloat = y;
-			var xFloat = x;
-			return A2(
-				$mdgriffith$elm_ui$Internal$Model$StyleClass,
-				$mdgriffith$elm_ui$Internal$Flag$padding,
-				A5(
-					$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
-					'p-' + ($elm$core$String$fromInt(x) + ('-' + $elm$core$String$fromInt(y))),
-					yFloat,
-					xFloat,
-					yFloat,
-					xFloat));
-		}
-	});
 var $mdgriffith$elm_ui$Element$Input$defaultTextPadding = A2($mdgriffith$elm_ui$Element$paddingXY, 12, 12);
 var $mdgriffith$elm_ui$Internal$Flag$borderRound = $mdgriffith$elm_ui$Internal$Flag$flag(17);
 var $mdgriffith$elm_ui$Element$Border$rounded = function (radius) {
@@ -15892,40 +16007,6 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$json$Json$Decode$map,
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
-};
-var $mdgriffith$elm_ui$Internal$Model$paddingName = F4(
-	function (top, right, bottom, left) {
-		return 'pad-' + ($elm$core$String$fromInt(top) + ('-' + ($elm$core$String$fromInt(right) + ('-' + ($elm$core$String$fromInt(bottom) + ('-' + $elm$core$String$fromInt(left)))))));
-	});
-var $mdgriffith$elm_ui$Element$paddingEach = function (_v0) {
-	var top = _v0.top;
-	var right = _v0.right;
-	var bottom = _v0.bottom;
-	var left = _v0.left;
-	if (_Utils_eq(top, right) && (_Utils_eq(top, bottom) && _Utils_eq(top, left))) {
-		var topFloat = top;
-		return A2(
-			$mdgriffith$elm_ui$Internal$Model$StyleClass,
-			$mdgriffith$elm_ui$Internal$Flag$padding,
-			A5(
-				$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
-				'p-' + $elm$core$String$fromInt(top),
-				topFloat,
-				topFloat,
-				topFloat,
-				topFloat));
-	} else {
-		return A2(
-			$mdgriffith$elm_ui$Internal$Model$StyleClass,
-			$mdgriffith$elm_ui$Internal$Flag$padding,
-			A5(
-				$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
-				A4($mdgriffith$elm_ui$Internal$Model$paddingName, top, right, bottom, left),
-				top,
-				right,
-				bottom,
-				left));
-	}
 };
 var $mdgriffith$elm_ui$Element$htmlAttribute = $mdgriffith$elm_ui$Internal$Model$Attr;
 var $mdgriffith$elm_ui$Element$Input$isFill = function (len) {
