@@ -604,7 +604,7 @@ ${variant}`;
   var VERSION = "1.1.3";
   var TARGET_NAME = "Target: all";
   var INITIAL_ELM_COMPILED_TIMESTAMP = Number(
-    "1720437570723"
+    "1720438024414"
   );
   var ORIGINAL_COMPILATION_MODE = "debug";
   var ORIGINAL_BROWSER_UI_POSITION = "BottomLeft";
@@ -13864,6 +13864,18 @@ var $author$project$Model$Loaded = function (a) {
 	return {$: 'Loaded', a: a};
 };
 var $author$project$Model$Loading = {$: 'Loading'};
+var $author$project$BookSearch$ImageLoaded = {$: 'ImageLoaded'};
+var $author$project$Main$changeImageLoadStatusToLoaded = F2(
+	function (bookId, bookSearchResultList) {
+		return A2(
+			$elm$core$List$map,
+			function (bookSearchResult) {
+				return _Utils_eq(bookSearchResult.id, bookId) ? _Utils_update(
+					bookSearchResult,
+					{imageLoadStatus: $author$project$BookSearch$ImageLoaded}) : bookSearchResult;
+			},
+			bookSearchResultList);
+	});
 var $author$project$Msg$RecievedSearchResults = function (a) {
 	return {$: 'RecievedSearchResults', a: a};
 };
@@ -14115,10 +14127,11 @@ var $elm$http$Http$get = function (r) {
 	return $elm$http$Http$request(
 		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
 };
-var $author$project$BookSearch$BookSearchResult = F3(
-	function (id, bookInfo, selfLink) {
-		return {bookInfo: bookInfo, id: id, selfLink: selfLink};
+var $author$project$BookSearch$BookSearchResult = F4(
+	function (id, bookInfo, selfLink, imageLoadStatus) {
+		return {bookInfo: bookInfo, id: id, imageLoadStatus: imageLoadStatus, selfLink: selfLink};
 	});
+var $author$project$BookSearch$ImageLoading = {$: 'ImageLoading'};
 var $author$project$BookSearch$BookInfo = function (title) {
 	return function (authors) {
 		return function (pageCount) {
@@ -14259,6 +14272,7 @@ var $author$project$BookSearch$bookSearchResultDecoder = A4(
 										$elm$json$Json$Decode$string,
 										'',
 										$elm$json$Json$Decode$succeed($author$project$BookSearch$BookInfo)))))))))));
+var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$hardcoded = A2($elm$core$Basics$composeR, $elm$json$Json$Decode$succeed, $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom);
 var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required = F3(
 	function (key, valDecoder, decoder) {
 		return A2(
@@ -14267,19 +14281,22 @@ var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required = F3(
 			decoder);
 	});
 var $author$project$BookSearch$bookSearchResultListDecoder = $elm$json$Json$Decode$list(
-	A3(
-		$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-		'selfLink',
-		$elm$json$Json$Decode$string,
+	A2(
+		$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$hardcoded,
+		$author$project$BookSearch$ImageLoading,
 		A3(
 			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-			'volumeInfo',
-			$author$project$BookSearch$bookSearchResultDecoder,
+			'selfLink',
+			$elm$json$Json$Decode$string,
 			A3(
 				$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-				'id',
-				$elm$json$Json$Decode$string,
-				$elm$json$Json$Decode$succeed($author$project$BookSearch$BookSearchResult)))));
+				'volumeInfo',
+				$author$project$BookSearch$bookSearchResultDecoder,
+				A3(
+					$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+					'id',
+					$elm$json$Json$Decode$string,
+					$elm$json$Json$Decode$succeed($author$project$BookSearch$BookSearchResult))))));
 var $author$project$BookSearch$searchResultDecoder = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
 	'items',
@@ -14301,39 +14318,56 @@ var $author$project$Main$handleError = function (error) {
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'RecievedSearchResults') {
-			var result = msg.a;
-			if (result.$ === 'Ok') {
-				var searchResults = result.a;
+		switch (msg.$) {
+			case 'RecievedSearchResults':
+				var result = msg.a;
+				if (result.$ === 'Ok') {
+					var searchResults = result.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								bookSearchStatus: $author$project$Model$Loaded(searchResults)
+							}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					var error = result.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								error: $author$project$Main$handleError(error)
+							}),
+						$elm$core$Platform$Cmd$none);
+				}
+			case 'SearchInputChanged':
+				var newSearchInput = msg.a;
+				var bookSearchStatus = $elm$core$String$isEmpty(
+					$elm$core$String$trim(newSearchInput)) ? $author$project$Model$NoOp : $author$project$Model$Loading;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							bookSearchStatus: $author$project$Model$Loaded(searchResults)
+							bookSearchStatus: bookSearchStatus,
+							searchInput: $elm$core$Maybe$Just(newSearchInput)
 						}),
-					$elm$core$Platform$Cmd$none);
-			} else {
-				var error = result.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							error: $author$project$Main$handleError(error)
-						}),
-					$elm$core$Platform$Cmd$none);
-			}
-		} else {
-			var newSearchInput = msg.a;
-			var bookSearchStatus = $elm$core$String$isEmpty(
-				$elm$core$String$trim(newSearchInput)) ? $author$project$Model$NoOp : $author$project$Model$Loading;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						bookSearchStatus: bookSearchStatus,
-						searchInput: $elm$core$Maybe$Just(newSearchInput)
-					}),
-				$author$project$HttpClient$getSearchBookResults(newSearchInput));
+					$author$project$HttpClient$getSearchBookResults(newSearchInput));
+			default:
+				var bookId = msg.a;
+				var _v2 = model.bookSearchStatus;
+				if (_v2.$ === 'Loaded') {
+					var bookSearchResultList = _v2.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								bookSearchStatus: $author$project$Model$Loaded(
+									A2($author$project$Main$changeImageLoadStatusToLoaded, bookId, bookSearchResultList))
+							}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
 		}
 	});
 var $mdgriffith$elm_ui$Internal$Style$classes = {above: 'a', active: 'atv', alignBottom: 'ab', alignCenterX: 'cx', alignCenterY: 'cy', alignContainerBottom: 'acb', alignContainerCenterX: 'accx', alignContainerCenterY: 'accy', alignContainerRight: 'acr', alignLeft: 'al', alignRight: 'ar', alignTop: 'at', alignedHorizontally: 'ah', alignedVertically: 'av', any: 's', behind: 'bh', below: 'b', bold: 'w7', borderDashed: 'bd', borderDotted: 'bdt', borderNone: 'bn', borderSolid: 'bs', capturePointerEvents: 'cpe', clip: 'cp', clipX: 'cpx', clipY: 'cpy', column: 'c', container: 'ctr', contentBottom: 'cb', contentCenterX: 'ccx', contentCenterY: 'ccy', contentLeft: 'cl', contentRight: 'cr', contentTop: 'ct', cursorPointer: 'cptr', cursorText: 'ctxt', focus: 'fcs', focusedWithin: 'focus-within', fullSize: 'fs', grid: 'g', hasBehind: 'hbh', heightContent: 'hc', heightExact: 'he', heightFill: 'hf', heightFillPortion: 'hfp', hover: 'hv', imageContainer: 'ic', inFront: 'fr', inputLabel: 'lbl', inputMultiline: 'iml', inputMultilineFiller: 'imlf', inputMultilineParent: 'imlp', inputMultilineWrapper: 'implw', inputText: 'it', italic: 'i', link: 'lnk', nearby: 'nb', noTextSelection: 'notxt', onLeft: 'ol', onRight: 'or', opaque: 'oq', overflowHidden: 'oh', page: 'pg', paragraph: 'p', passPointerEvents: 'ppe', root: 'ui', row: 'r', scrollbars: 'sb', scrollbarsX: 'sbx', scrollbarsY: 'sby', seButton: 'sbt', single: 'e', sizeByCapital: 'cap', spaceEvenly: 'sev', strike: 'sk', text: 't', textCenter: 'tc', textExtraBold: 'w8', textExtraLight: 'w2', textHeavy: 'w9', textJustify: 'tj', textJustifyAll: 'tja', textLeft: 'tl', textLight: 'w3', textMedium: 'w5', textNormalWeight: 'w4', textRight: 'tr', textSemiBold: 'w6', textThin: 'w1', textUnitalicized: 'tun', transition: 'ts', transparent: 'clr', underline: 'u', widthContent: 'wc', widthExact: 'we', widthFill: 'wf', widthFillPortion: 'wfp', wrapped: 'wrp'};
@@ -21387,4 +21421,4 @@ var $author$project$Main$main = $elm$browser$Browser$element(
 		view: $author$project$View$view
 	});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Msg.Msg","aliases":{"BookSearch.BookInfo":{"args":[],"type":"{ title : String.String, authors : List.List String.String, pageCount : Basics.Int, categories : List.List String.String, rating : Maybe.Maybe Basics.Float, isAdultBook : String.String, publishedDate : String.String, description : String.String, thumbnailImageUrl : String.String, publisher : String.String }"},"BookSearch.BookSearchResult":{"args":[],"type":"{ id : String.String, bookInfo : BookSearch.BookInfo, selfLink : String.String }"},"BookSearch.BookSearchResultList":{"args":[],"type":"List.List BookSearch.BookSearchResult"}},"unions":{"Msg.Msg":{"args":[],"tags":{"RecievedSearchResults":["Result.Result Http.Error BookSearch.BookSearchResultList"],"SearchInputChanged":["String.String"]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Msg.Msg","aliases":{"BookSearch.BookInfo":{"args":[],"type":"{ title : String.String, authors : List.List String.String, pageCount : Basics.Int, categories : List.List String.String, rating : Maybe.Maybe Basics.Float, isAdultBook : String.String, publishedDate : String.String, description : String.String, thumbnailImageUrl : String.String, publisher : String.String }"},"BookSearch.BookSearchResult":{"args":[],"type":"{ id : String.String, bookInfo : BookSearch.BookInfo, selfLink : String.String, imageLoadStatus : BookSearch.ImageLoadStatus }"},"BookSearch.BookSearchResultList":{"args":[],"type":"List.List BookSearch.BookSearchResult"}},"unions":{"Msg.Msg":{"args":[],"tags":{"RecievedSearchResults":["Result.Result Http.Error BookSearch.BookSearchResultList"],"SearchInputChanged":["String.String"],"OnImageLoad":["String.String"]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"BookSearch.ImageLoadStatus":{"args":[],"tags":{"ImageLoading":[],"ImageLoaded":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));

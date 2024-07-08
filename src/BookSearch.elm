@@ -1,13 +1,19 @@
 module BookSearch exposing (..)
 
 import Json.Decode as D exposing (Decoder)
-import Json.Decode.Pipeline exposing (optional, optionalAt, required)
+import Json.Decode.Pipeline exposing (hardcoded, optional, optionalAt, required)
+
+
+type ImageLoadStatus
+    = ImageLoading
+    | ImageLoaded
 
 
 type alias BookSearchResult =
     { id : String
     , bookInfo : BookInfo
     , selfLink : String
+    , imageLoadStatus : ImageLoadStatus
     }
 
 
@@ -42,6 +48,7 @@ bookSearchResultListDecoder =
             |> required "id" D.string
             |> required "volumeInfo" bookSearchResultDecoder
             |> required "selfLink" D.string
+            |> hardcoded ImageLoading
         )
 
 

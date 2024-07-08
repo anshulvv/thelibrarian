@@ -7,3 +7,4 @@ import Http
 type Msg
     = RecievedSearchResults (Result Http.Error BookSearchResultList)
     | SearchInputChanged String
+    | OnImageLoad String

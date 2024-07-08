@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import BookSearch exposing (BookSearchResultList)
 import Browser
 import Http
 import HttpClient
@@ -48,6 +49,29 @@ update msg model =
               }
             , HttpClient.getSearchBookResults newSearchInput
             )
+
+        Msg.OnImageLoad bookId ->
+            case model.bookSearchStatus of
+                Loaded bookSearchResultList ->
+                    ( { model | bookSearchStatus = Loaded (changeImageLoadStatusToLoaded bookId bookSearchResultList) }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+
+changeImageLoadStatusToLoaded : String -> BookSearchResultList -> BookSearchResultList
+changeImageLoadStatusToLoaded bookId bookSearchResultList =
+    List.map
+        (\bookSearchResult ->
+            if bookSearchResult.id == bookId then
+                { bookSearchResult | imageLoadStatus = BookSearch.ImageLoaded }
+
+            else
+                bookSearchResult
+        )
+        bookSearchResultList
 
 
 handleError : Http.Error -> Maybe String
