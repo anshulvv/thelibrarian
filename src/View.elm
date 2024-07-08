@@ -1,6 +1,6 @@
 module View exposing (..)
 
-import BookSearch exposing (BookSearchResult, BookSearchResultList)
+import BookSearch exposing (BookInfo, BookSearchResult, BookSearchResultList)
 import Element exposing (Element, fill, height, maximum, minimum, width)
 import Element.Border
 import Element.Font
@@ -36,8 +36,12 @@ viewSearchBox model =
 
 
 viewSearchBookCard : BookSearchResult -> Element Msg
-viewSearchBookCard bookInfo =
+viewSearchBookCard bookSearchResult =
     let
+        bookInfo : BookInfo
+        bookInfo =
+            bookSearchResult.bookInfo
+
         viewThumbnail : String -> Element Msg
         viewThumbnail url =
             Element.image
@@ -77,7 +81,7 @@ viewRating maybeRating =
                 ]
 
 
-viewBookDetailsCard : BookSearchResult -> Element Msg
+viewBookDetailsCard : BookInfo -> Element Msg
 viewBookDetailsCard bookInfo =
     let
         viewTitle : String -> Element Msg

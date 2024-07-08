@@ -5,6 +5,13 @@ import Json.Decode.Pipeline exposing (optional, optionalAt, required)
 
 
 type alias BookSearchResult =
+    { id : String
+    , bookInfo : BookInfo
+    , selfLink : String
+    }
+
+
+type alias BookInfo =
     { title : String
     , authors : List String
     , pageCount : Int
@@ -31,14 +38,16 @@ searchResultDecoder =
 bookSearchResultListDecoder : Decoder BookSearchResultList
 bookSearchResultListDecoder =
     D.list
-        (D.succeed identity
+        (D.succeed BookSearchResult
+            |> required "id" D.string
             |> required "volumeInfo" bookSearchResultDecoder
+            |> required "selfLink" D.string
         )
 
 
-bookSearchResultDecoder : Decoder BookSearchResult
+bookSearchResultDecoder : Decoder BookInfo
 bookSearchResultDecoder =
-    D.succeed BookSearchResult
+    D.succeed BookInfo
         |> optional "title" D.string ""
         |> optional "authors" (D.list D.string) []
         |> optional "pageCount" D.int 0
