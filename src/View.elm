@@ -17,7 +17,7 @@ view model =
 
 viewHelper : Model -> Element Msg
 viewHelper model =
-    Element.column [ width (fill |> minimum 500) ]
+    Element.column [ width (fill |> minimum 500 |> maximum 500) ]
         [ viewSearchBox model
         , viewBookSearchResults model
         , Element.paragraph [] [ Element.text <| Maybe.withDefault "No Error" model.error ]
@@ -84,22 +84,29 @@ viewBookDetailsCard bookInfo =
         viewTitle title =
             Element.paragraph
                 [ Element.Font.bold
+                , width fill
                 ]
                 [ Element.text <| title ]
 
-        showAuthors : List String -> String
+        showAuthors : List String -> Element Msg
         showAuthors authors =
-            case authors of
-                [] ->
-                    "No Authors"
+            let
+                authorString =
+                    case authors of
+                        [] ->
+                            "No Authors"
 
-                head :: tail ->
-                    List.foldr (\author authorString -> authorString ++ ", " ++ author) head tail
+                        head :: tail ->
+                            List.foldr (\author combinedAuthors -> combinedAuthors ++ ", " ++ author) head tail
+            in
+            Element.paragraph
+                [ width fill ]
+                [ Element.text <| authorString ]
     in
     Element.column
         [ width fill, Element.spacingXY 0 20 ]
         [ viewTitle bookInfo.title
-        , Element.text <| showAuthors bookInfo.authors
+        , showAuthors bookInfo.authors
         , Element.text <| bookInfo.publishedDate
         ]
 
@@ -125,7 +132,7 @@ viewBookSearchResults model =
                 Element.text <| "List is empty"
 
             else
-                Element.column []
+                Element.column [ width fill ]
                     (List.map
                         viewSearchBookCard
                         bookSearchResultList

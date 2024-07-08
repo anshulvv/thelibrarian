@@ -604,7 +604,7 @@ ${variant}`;
   var VERSION = "1.1.3";
   var TARGET_NAME = "Target: all";
   var INITIAL_ELM_COMPILED_TIMESTAMP = Number(
-    "1720356673912"
+    "1720434390068"
   );
   var ORIGINAL_COMPILATION_MODE = "standard";
   var ORIGINAL_BROWSER_UI_POSITION = "BottomLeft";
@@ -15274,6 +15274,14 @@ var $mdgriffith$elm_ui$Internal$Model$Fill = function (a) {
 	return {$: 'Fill', a: a};
 };
 var $mdgriffith$elm_ui$Element$fill = $mdgriffith$elm_ui$Internal$Model$Fill(1);
+var $mdgriffith$elm_ui$Internal$Model$Max = F2(
+	function (a, b) {
+		return {$: 'Max', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Element$maximum = F2(
+	function (i, l) {
+		return A2($mdgriffith$elm_ui$Internal$Model$Max, i, l);
+	});
 var $mdgriffith$elm_ui$Internal$Model$Min = F2(
 	function (a, b) {
 		return {$: 'Min', a: a, b: b};
@@ -15437,14 +15445,6 @@ var $mdgriffith$elm_ui$Element$Border$color = function (clr) {
 			'border-color',
 			clr));
 };
-var $mdgriffith$elm_ui$Internal$Model$Max = F2(
-	function (a, b) {
-		return {$: 'Max', a: a, b: b};
-	});
-var $mdgriffith$elm_ui$Element$maximum = F2(
-	function (i, l) {
-		return A2($mdgriffith$elm_ui$Internal$Model$Max, i, l);
-	});
 var $mdgriffith$elm_ui$Internal$Model$PaddingStyle = F5(
 	function (a, b, c, d, e) {
 		return {$: 'PaddingStyle', a: a, b: b, c: c, d: d, e: e};
@@ -15512,27 +15512,42 @@ var $author$project$View$viewBookDetailsCard = function (bookInfo) {
 		return A2(
 			$mdgriffith$elm_ui$Element$paragraph,
 			_List_fromArray(
-				[$mdgriffith$elm_ui$Element$Font$bold]),
+				[
+					$mdgriffith$elm_ui$Element$Font$bold,
+					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+				]),
 			_List_fromArray(
 				[
 					$mdgriffith$elm_ui$Element$text(title)
 				]));
 	};
 	var showAuthors = function (authors) {
-		if (!authors.b) {
-			return 'No Authors';
-		} else {
-			var head = authors.a;
-			var tail = authors.b;
-			return A3(
-				$elm$core$List$foldr,
-				F2(
-					function (author, authorString) {
-						return authorString + (', ' + author);
-					}),
-				head,
-				tail);
-		}
+		var authorString = function () {
+			if (!authors.b) {
+				return 'No Authors';
+			} else {
+				var head = authors.a;
+				var tail = authors.b;
+				return A3(
+					$elm$core$List$foldr,
+					F2(
+						function (author, combinedAuthors) {
+							return combinedAuthors + (', ' + author);
+						}),
+					head,
+					tail);
+			}
+		}();
+		return A2(
+			$mdgriffith$elm_ui$Element$paragraph,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+				]),
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$text(authorString)
+				]));
 	};
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
@@ -15544,8 +15559,7 @@ var $author$project$View$viewBookDetailsCard = function (bookInfo) {
 		_List_fromArray(
 			[
 				viewTitle(bookInfo.title),
-				$mdgriffith$elm_ui$Element$text(
-				showAuthors(bookInfo.authors)),
+				showAuthors(bookInfo.authors),
 				$mdgriffith$elm_ui$Element$text(bookInfo.publishedDate)
 			]));
 };
@@ -15684,7 +15698,10 @@ var $author$project$View$viewBookSearchResults = function (model) {
 	} else {
 		return $elm$core$List$isEmpty(bookSearchResultList) ? $mdgriffith$elm_ui$Element$text('List is empty') : A2(
 			$mdgriffith$elm_ui$Element$column,
-			_List_Nil,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+				]),
 			A2($elm$core$List$map, $author$project$View$viewSearchBookCard, bookSearchResultList));
 	}
 };
@@ -16641,7 +16658,10 @@ var $author$project$View$viewHelper = function (model) {
 		_List_fromArray(
 			[
 				$mdgriffith$elm_ui$Element$width(
-				A2($mdgriffith$elm_ui$Element$minimum, 500, $mdgriffith$elm_ui$Element$fill))
+				A2(
+					$mdgriffith$elm_ui$Element$maximum,
+					500,
+					A2($mdgriffith$elm_ui$Element$minimum, 500, $mdgriffith$elm_ui$Element$fill)))
 			]),
 		_List_fromArray(
 			[
